@@ -518,4 +518,6 @@ func mytest() {
 
 	//cli.UpdateToken()
 	//API##########
+	str := EscapeJSONString(`"{{\\"}}:fs"`)
+	fmt.Println(str)
 }

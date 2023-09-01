@@ -100,6 +100,11 @@ func setFuns(ct *cmd.Context) {
 		NeedValue: false,
 		Desc:      "print help"}
 
+	pro.ParamDefMap["p"] = &cmd.ParamDef{
+		Name:      "p",
+		LongName:  "person",
+		NeedValue: true,
+		Desc:      ""}
 	ct.CmdMap[pro.Name] = pro
 	pro.Cmd = func(pro *cmd.Program) {
 		if ct.ParamGroupMap["h"] != nil {
@@ -111,9 +116,23 @@ func setFuns(ct *cmd.Context) {
 			fmt.Println("err = ", err)
 			return
 		}
-		err = cli.APISendMail()
+		person := ""
+		if ct.ParamGroupMap["p"] != nil {
+			person = ct.ParamGroupMap["p"].Value
+		}
+		if person == "" {
+			fmt.Printf("pls enter person\n")
+			return
+		}
+		if pro.Target == "" {
+			fmt.Printf("pls enter email content\n")
+			return
+		}
+		err = cli.APISendMail(person, "test", pro.Target)
 		if err != nil {
-			fmt.Println("err = ", err)
+			fmt.Printf("err = %s\n", err.Error())
+		} else {
+			fmt.Printf("sended\n")
 		}
 	}
 
