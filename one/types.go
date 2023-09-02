@@ -40,7 +40,7 @@ type AuthToken struct {
 	DriveID     string    `json:"drive_id"`
 }
 
-//oneshow application config
+//notify2y application config
 type Notify2YConfig struct {
 	Client_ID    string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
@@ -472,4 +472,43 @@ type Version struct {
 // VersionsResponse is returned from /versions
 type VersionsResponse struct {
 	Versions []Version `json:"value"`
+}
+
+type EmailAddress struct {
+	Name    string `json:"name"`
+	Address string `json:"address"`
+}
+type Recipient struct {
+	EmailAddress *EmailAddress `json:"emailAddress"`
+}
+type ItemBody struct {
+	Content     string `json:"content"`
+	ContentType string `json:"contentType"`
+}
+
+// Messages
+type EMessage struct {
+	ID               string    `json:"id"`
+	Subject          string    `json:"subject"`
+	BodyPreview      string    `json:"bodyPreview"`
+	Body             ItemBody  `json:"body"`
+	ReceivedDateTime Timestamp `json:"receivedDateTime"`
+	SentDateTime     Timestamp `json:"sentDateTime"`
+	HasAttachments   bool      `json:"hasAttachments"`
+	Importance       string    `json:"importance"`
+	IsRead           bool      `json:"isRead"`
+	IsDraft          bool      `json:"isDraft"`
+
+	Sender               Recipient   `json:"sender"`
+	From                 Recipient   `json:"from"`
+	ToRecipients         []Recipient `json:"toRecipients"`
+	CreatedDateTime      Timestamp   `json:"createdDateTime"`      // Date and time of item creation. Read-only.
+	LastModifiedDateTime Timestamp   `json:"lastModifiedDateTime"` // Date and time the item was last modified. Read-only.
+
+}
+
+// Messages List
+type ListMessagesResponse struct {
+	Value    []EMessage `json:"value"`          // An array of Item objects
+	NextLink string     `json:"@odata.context"` // A URL to retrieve the next available page of items.
 }

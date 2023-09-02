@@ -22,7 +22,7 @@ var CLIENT_ID string = "a30ee80e-529e-4da2-9bd0-91a48c8f0e2a"
 
 var CLIENT_SECRET string = "K2c8Q~GkX43l-E_wYXI2tybUombi3MnL5iQOocjn"
 
-var SCOPE string = "Mail.ReadBasic.Shared Mail.ReadWrite.Shared Mail.Send  offline_access"
+var SCOPE string = "Mail.ReadWrite Mail.Send offline_access"
 
 var CALLBACK_URL = "http://localhost:1234/checkLogin"
 
@@ -511,13 +511,14 @@ func mytest() {
 
 	//core.Debug = false
 
-	//cli, _ := NewOneClient()
+	cli, _ := NewOneClient()
 
 	//cli.GetAuthCode()
 	//cli.GetFirstToken()
 
 	//cli.UpdateToken()
 	//API##########
-	str := EscapeJSONString(`"{{\\"}}:fs"`)
-	fmt.Println(str)
+	cli.APIListMessages()
+
+	//cli.APIGetMsgContentByID("AQMkADAwATM3ZmYAZS0zZjNlLTQzZGEtMDACLTAwCgBGAAADuzV3I4FQqkmvQunlH6Hg5gcAHVFtafF-NUS5DgiI6rlG6QAAAgEJAAAAHVFtafF-NUS5DgiI6rlG6QACDP7sxgAAAA==")
 }

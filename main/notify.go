@@ -90,8 +90,8 @@ func setFuns(ct *cmd.Context) {
 	//next remove command
 	pro = new(cmd.Program)
 	pro.Name = "send"
-	pro.Desc = "remove a file or dir to trash"
-	pro.Usage = "usage: " + pro.Name + " [OPTION]  [file|dir]"
+	pro.Desc = "send mail"
+	pro.Usage = "usage: " + pro.Name + " [OPTION]  [content]"
 	pro.ParamDefMap = map[string]*cmd.ParamDef{}
 
 	pro.ParamDefMap["h"] = &cmd.ParamDef{
@@ -100,11 +100,11 @@ func setFuns(ct *cmd.Context) {
 		NeedValue: false,
 		Desc:      "print help"}
 
-	pro.ParamDefMap["p"] = &cmd.ParamDef{
-		Name:      "p",
-		LongName:  "person",
+	pro.ParamDefMap["r"] = &cmd.ParamDef{
+		Name:      "r",
+		LongName:  "recipient",
 		NeedValue: true,
-		Desc:      ""}
+		Desc:      "recipient email"}
 	ct.CmdMap[pro.Name] = pro
 	pro.Cmd = func(pro *cmd.Program) {
 		if ct.ParamGroupMap["h"] != nil {
@@ -117,18 +117,18 @@ func setFuns(ct *cmd.Context) {
 			return
 		}
 		person := ""
-		if ct.ParamGroupMap["p"] != nil {
-			person = ct.ParamGroupMap["p"].Value
+		if ct.ParamGroupMap["r"] != nil {
+			person = ct.ParamGroupMap["r"].Value
 		}
 		if person == "" {
-			fmt.Printf("pls enter person\n")
+			fmt.Printf("pls enter recipient email\n")
 			return
 		}
 		if pro.Target == "" {
 			fmt.Printf("pls enter email content\n")
 			return
 		}
-		err = cli.APISendMail(person, "test", pro.Target)
+		err = cli.APISendMail(person, "api test on notify2y", pro.Target, "text")
 		if err != nil {
 			fmt.Printf("err = %s\n", err.Error())
 		} else {
