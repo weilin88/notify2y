@@ -518,7 +518,24 @@ func mytest() {
 
 	//cli.UpdateToken()
 	//API##########
-	cli.APIListMessages()
+
+	//cli.APIListMessages()
 
 	//cli.APIGetMsgContentByID("AQMkADAwATM3ZmYAZS0zZjNlLTQzZGEtMDACLTAwCgBGAAADuzV3I4FQqkmvQunlH6Hg5gcAHVFtafF-NUS5DgiI6rlG6QAAAgEJAAAAHVFtafF-NUS5DgiI6rlG6QACDP7sxgAAAA==")
+
+	/*
+		html := `
+		<html>
+		<head>
+			<title>info</title>
+		</head>
+		<body>
+			information to you
+		</body>
+		</html>
+		`
+		cli.APISendMail("canyelengxin@163.com", "html email test", html, "html")
+	*/
+	cli.findConfigFile()
+	AListCopy("aa.txt")
 }
