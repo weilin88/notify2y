@@ -537,5 +537,4 @@ func mytest() {
 		cli.APISendMail("canyelengxin@163.com", "html email test", html, "html")
 	*/
 	cli.findConfigFile()
-	AListCopy("aa.txt")
 }

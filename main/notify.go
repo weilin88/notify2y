@@ -7,6 +7,7 @@ import (
 	"github.com/weilin88/notify2y/cmd"
 	"github.com/weilin88/notify2y/core"
 	"github.com/weilin88/notify2y/one"
+	"github.com/weilin88/notify2y/task"
 )
 
 func setFuns(ct *cmd.Context) {
@@ -134,6 +135,35 @@ func setFuns(ct *cmd.Context) {
 		} else {
 			fmt.Printf("sended\n")
 		}
+	}
+	pro = new(cmd.Program)
+	pro.Name = "notify"
+	pro.Desc = "notify to you"
+	pro.Usage = "usage: " + pro.Name + " [OPTION]"
+	pro.ParamDefMap = map[string]*cmd.ParamDef{}
+
+	pro.ParamDefMap["h"] = &cmd.ParamDef{
+		Name:      "h",
+		LongName:  "help",
+		NeedValue: false,
+		Desc:      "print help"}
+
+	pro.ParamDefMap["r"] = &cmd.ParamDef{
+		Name:      "r",
+		LongName:  "recipient",
+		NeedValue: true,
+		Desc:      "recipient email"}
+	ct.CmdMap[pro.Name] = pro
+	pro.Cmd = func(pro *cmd.Program) {
+		if ct.ParamGroupMap["h"] != nil {
+			cmd.PrintCmdHelp(pro)
+			return
+		}
+		person := ""
+		if ct.ParamGroupMap["r"] != nil {
+			person = ct.ParamGroupMap["r"].Value
+		}
+		notify2You(person)
 	}
 
 	//next add new user
@@ -324,6 +354,32 @@ func setFuns(ct *cmd.Context) {
 		}
 	}
 
+}
+
+func notify2You(person string) {
+	cli, err := one.NewOneClient()
+	if err != nil {
+		fmt.Println("err = ", err)
+		return
+	}
+	s := new(task.TaskService)
+	err = s.Init()
+	if err != nil {
+		fmt.Println("err = ", err)
+		return
+	}
+	li, err := s.ListTask()
+	for _, v := range li {
+		if v.Type == "IM" {
+			err = cli.APISendMail(person, v.Subject, v.Content, "text")
+			if err != nil {
+				fmt.Printf("err = %s\n", err.Error())
+			} else {
+				fmt.Printf("sended\n")
+			}
+			break
+		}
+	}
 }
 func main() {
 	core.Debug = true

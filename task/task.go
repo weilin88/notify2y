@@ -33,6 +33,7 @@ func (t *Task) Copy() *Task {
 	n.ID = t.ID
 	n.Importance = t.Importance
 	n.Subject = t.Subject
+	n.Type = t.Type
 	return n
 }
 
@@ -67,7 +68,7 @@ func (s *TaskService) UpdateTask(t *Task) error {
 	}
 	return nil
 }
-func (s *TaskService) ListTask(t *Task) ([]*Task, error) {
+func (s *TaskService) ListTask() ([]*Task, error) {
 	nList := []*Task{}
 	for _, v := range s.taskData {
 		nList = append(nList, v.Copy())

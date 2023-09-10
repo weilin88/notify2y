@@ -12,6 +12,6 @@ func Test_Common(t *testing.T) {
 		fmt.Println("err = ", err)
 		return
 	}
-	task := Task{Content: "test task content", Subject: "pls"}
+	task := Task{Content: "you goal list.", Subject: "import message", Type: "IM"}
 	s.AddTask(&task)
 }
