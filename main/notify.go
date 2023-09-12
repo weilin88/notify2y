@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/weilin88/notify2y/cmd"
@@ -138,7 +140,7 @@ func setFuns(ct *cmd.Context) {
 	}
 	pro = new(cmd.Program)
 	pro.Name = "notify"
-	pro.Desc = "notify to you"
+	pro.Desc = "notify to you,env runTime"
 	pro.Usage = "usage: " + pro.Name + " [OPTION]"
 	pro.ParamDefMap = map[string]*cmd.ParamDef{}
 
@@ -163,7 +165,14 @@ func setFuns(ct *cmd.Context) {
 		if ct.ParamGroupMap["r"] != nil {
 			person = ct.ParamGroupMap["r"].Value
 		}
-		notify2You(person)
+		if person == "" {
+			fmt.Printf("person can not be empty.")
+			return
+		}
+		for {
+			waitTime(person)
+			time.Sleep(time.Hour)
+		}
 	}
 
 	//next add new user
@@ -380,6 +389,29 @@ func notify2You(person string) {
 			break
 		}
 	}
+}
+func waitTime(person string) {
+	now := time.Now()
+
+	rt := 13
+	runStr := os.Getenv("runTime")
+	i, err := strconv.ParseInt(runStr, 10, 64)
+	if err == nil {
+		rt = int(i)
+	}
+	fmt.Printf("run on %d hour \n", rt)
+	nextTen := time.Date(now.Year(), now.Month(), now.Day(), rt, 20, 0, 0, now.Location())
+	if now.After(nextTen) {
+		nextTen = nextTen.Add(24 * time.Hour)
+	}
+
+	waitTime := nextTen.Sub(now)
+
+	timer := time.NewTimer(waitTime)
+	<-timer.C
+
+	//fmt.Println("It's 10:00 AM. Running your function now.")
+	notify2You(person)
 }
 func main() {
 	core.Debug = true
