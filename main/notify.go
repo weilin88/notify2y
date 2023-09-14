@@ -161,6 +161,11 @@ func setFuns(ct *cmd.Context) {
 		LongName:  "recipient",
 		NeedValue: true,
 		Desc:      "recipient email"}
+	pro.ParamDefMap["t"] = &cmd.ParamDef{
+		Name:      "t",
+		LongName:  "test",
+		NeedValue: false,
+		Desc:      "only for test,send notify without waiting"}
 	ct.CmdMap[pro.Name] = pro
 	pro.Cmd = func(pro *cmd.Program) {
 		if ct.ParamGroupMap["h"] != nil {
@@ -175,9 +180,13 @@ func setFuns(ct *cmd.Context) {
 			fmt.Printf("person can not be empty.")
 			return
 		}
-		for {
-			waitTime(person)
-			time.Sleep(time.Hour)
+		if ct.ParamGroupMap["t"] != nil {
+			notify2You(person)
+		} else {
+			for {
+				waitTime(person)
+				time.Sleep(time.Hour)
+			}
 		}
 	}
 
@@ -405,7 +414,6 @@ func notify2You(person string) {
 			} else {
 				fmt.Printf("sended\n")
 			}
-			break
 		}
 	}
 }
