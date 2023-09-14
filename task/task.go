@@ -14,6 +14,7 @@ import (
 
 type Task struct {
 	ID         string `json:"id"`
+	Version    int    `json:"version"`
 	Subject    string `json:"subject"`
 	Type       string `json:"type"`
 	Content    string `json:"Content"`
@@ -34,6 +35,7 @@ func (t *Task) Copy() *Task {
 	n.Importance = t.Importance
 	n.Subject = t.Subject
 	n.Type = t.Type
+	n.Version = t.Version
 	return n
 }
 
@@ -55,6 +57,13 @@ func (s *TaskService) AddTask(t *Task) error {
 	s.index[t.ID] = t
 	s.saveAll()
 	return nil
+}
+func (s *TaskService) GetTask(ID string) (*Task, error) {
+	task := s.index[ID]
+	if task != nil {
+		return task, nil
+	}
+	return nil, fmt.Errorf("Not Found Task ,ID = %s", ID)
 }
 
 func (s *TaskService) UpdateTask(t *Task) error {

@@ -2,14 +2,77 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
+	"path/filepath"
 	"time"
 
 	"github.com/weilin88/notify2y/one"
+	"github.com/weilin88/notify2y/task"
 )
+
+var tools = new(Tools)
+
+type WebContext struct {
+	Address     string
+	EnableTLS   bool
+	EnableEmbed bool
+	Cli         *one.OneClient
+	TaskAPI     *task.TaskService
+}
+
+type JsonRequest struct {
+	Argvs []string
+}
+type JsonResponse struct {
+	Error   bool
+	Message string
+	Data    interface{}
+}
+
+const sys_err = `{
+	"Error":true
+	"Message":"system error"
+	"Data" : null
+}
+`
+
+func parseRequst(w http.ResponseWriter, r *http.Request) (*JsonRequest, error) {
+	defer r.Body.Close()
+	buff := &bytes.Buffer{}
+	_, err := io.Copy(buff, r.Body)
+	if err != nil {
+		return nil, err
+	}
+	jsonObj := new(JsonRequest)
+	err = json.Unmarshal(buff.Bytes(), jsonObj)
+	if err != nil {
+		return nil, err
+	}
+	return jsonObj, nil
+}
+
+func responseResult(w http.ResponseWriter, r *http.Request, result *JsonResponse) {
+	w.Header().Add("Content-Type", "application/json")
+	jsonBytes, err := json.Marshal(result)
+	if err != nil {
+		fmt.Println("err = ", err)
+		w.Write([]byte(sys_err))
+		return
+	}
+	w.Write(jsonBytes)
+}
+
+func checkParamVaild(req *JsonRequest, argsLen int, result *JsonResponse) bool {
+	if req != nil && len(req.Argvs) == argsLen {
+		return true
+	}
+	result.Error = false
+	result.Message = "invalid argvs"
+	return false
+}
 
 func AutoUpdateToken(cli *one.OneClient) {
 	for {
@@ -33,113 +96,36 @@ func CheckToken(cli *one.OneClient) error {
 
 }
 
-func OutHtml(body string) string {
-	html := `
-	<html>
-		<head>
-			<title></title>
-		</head>
-		<body>
-			%s
-		</body>
-	</html>
-	`
-	ret := fmt.Sprintf(html, body)
-	return ret
-}
-
-func CmdLS(dirPath string, cli *one.OneClient) string {
-	var buff bytes.Buffer
-	ret, err := cli.APIListFilesByPath(cli.CurDriveID, dirPath)
-	if dirPath != "/" {
-		dirPath = dirPath + "/"
-	}
-	if err != nil {
-		fmt.Println("err = ", err)
-		return err.Error()
-	}
-	for _, v := range ret.Value {
-		if v.Folder != nil {
-			//<a src="" >$name</a>
-			s := fmt.Sprintf(`<div><a href="/vfs?path=%s">%s/</a></div>`, dirPath+v.Name, v.Name)
-			buff.WriteString(s)
-		} else {
-			s := fmt.Sprintf(`<div><a href="%s" target="blank">%s</a> %s <a href="/play?id=%s" target="blank">play</a>`, v.DownloadURL, v.Name, one.ViewHumanShow(v.Size), url.QueryEscape(v.DownloadURL))
-			buff.WriteString(s)
-		}
-		//buff.WriteString("<br />")
-	}
-	return buff.String()
-}
-
 func GetQueryParamByKey(r *http.Request, key string) string {
-
 	keys, ok := r.URL.Query()[key]
 	if !ok || len(keys[0]) < 1 {
 		return ""
 	}
-
 	return keys[0]
 }
-func Serivce(address string, https bool) {
-	var err1 error
-	cli, err1 := one.NewOneClient()
-	if err1 != nil {
-		panic(err1.Error())
+
+func Serivce(ctx *WebContext) {
+	cli, err := one.NewOneClient()
+	if err != nil {
+		panic(err.Error())
 	}
-	http.HandleFunc("/p", func(w http.ResponseWriter, r *http.Request) {
-		dd := GetQueryParamByKey(r, "d")
-		w.Write([]byte(dd))
-	})
-
-	http.HandleFunc("/fetch", func(w http.ResponseWriter, r *http.Request) {
-		fetchURL := GetQueryParamByKey(r, "url")
-		method := GetQueryParamByKey(r, "method")
-		if method == "" {
-			method = "GET"
-		}
-		if fetchURL == "" {
-			w.Write([]byte("fetch method : url can not be empty."))
-			return
-		}
-		headers := map[string]string{}
-		for k, v := range r.Header {
-			headers[k] = v[0]
-		}
-		fetchResp, err := cli.HTTPClient.HttpRequest(method, fetchURL, headers, "")
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			return
-		}
-		//respose line
-		w.WriteHeader(fetchResp.StatusCode)
-
-		//header
-		for k, v := range fetchResp.Header {
-			w.Header().Add(k, v[0])
-		}
-		//body
-		_, err = io.Copy(w, fetchResp.Body)
-	})
-
-	http.HandleFunc("/notify/manager", func(w http.ResponseWriter, r *http.Request) {
-		dirPath := GetQueryParamByKey(r, "path")
-		if dirPath == "" {
-			dirPath = "/"
-		}
-		strLen := len(dirPath)
-		if strLen > 1 && dirPath[strLen-1] == '/' {
-			dirPath = dirPath[:strLen-1]
-		}
-		err := CheckToken(cli)
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			return
-		}
-		body := CmdLS(dirPath, cli)
-		html := OutHtml(body)
-		w.Write([]byte(html))
-	})
+	s := new(task.TaskService)
+	err = s.Init()
+	if err != nil {
+		fmt.Println("err = ", err)
+		panic(err.Error())
+	}
+	var httpRoot http.FileSystem
+	if ctx.EnableEmbed {
+		httpRoot = http.FS(staticSource)
+		http.Handle("/static/", http.FileServer(httpRoot))
+	} else {
+		sourceDir := "./static"
+		httpRoot = http.Dir(sourceDir)
+		http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(httpRoot)))
+	}
+	ctx.Cli = cli
+	ctx.TaskAPI = s
 
 	http.HandleFunc("/debug", func(w http.ResponseWriter, r *http.Request) {
 		uu := r.URL.String()
@@ -171,7 +157,6 @@ func Serivce(address string, https bool) {
 			buff.WriteString("\n")
 		}
 		buff.WriteString("\n")
-
 		buff.WriteString("body = ")
 		if r.Body != nil {
 			defer r.Body.Close()
@@ -183,15 +168,87 @@ func Serivce(address string, https bool) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("{\"error\":\"ok\"}"))
 	})
-	var err error
-	if https {
-		fmt.Println("https server on ", address)
-		err = http.ListenAndServeTLS(address, "cer.pem", "key.pem", nil)
+
+	http.HandleFunc("/html/", func(w http.ResponseWriter, r *http.Request) {
+		notFoundHtml := `<html>
+			<head>
+				<title>Not Found</title>
+			</head>
+			<body>
+			404 Not Found
+			</body>
+		</html>`
+		sourceHtml := filepath.Base(r.URL.Path)
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
+		buff, err := tools.GetFileContent(httpRoot, sourceHtml)
+		if err != nil {
+			w.Write([]byte(notFoundHtml))
+		} else {
+			if sourceHtml == "task-create.html" {
+				taskCreateHtml(w, r, ctx, buff)
+			} else if sourceHtml == "task-detail.html" {
+				//billCreateHtml(w, r, context, buff)
+			} else {
+				w.Write([]byte(notFoundHtml))
+			}
+		}
+	})
+
+	api := new(API)
+	api.Context = ctx
+	http.HandleFunc("/call", func(w http.ResponseWriter, r *http.Request) {
+		result := new(JsonResponse)
+		method := GetQueryParamByKey(r, "method")
+		fmt.Println("call method:", method)
+		req, err := parseRequst(w, r)
+		if err != nil {
+			result.Error = true
+			result.Message = err.Error()
+			responseResult(w, r, result)
+			return
+		}
+		switch method {
+		case "createTask":
+			api.CreateTask(req, result)
+		case "delTask":
+			api.DelTask(req, result)
+		case "sales":
+			api.SearchTask(req, result)
+		default:
+			result.Error = true
+			result.Message = "can not find called method :" + method
+		}
+		responseResult(w, r, result)
+	})
+
+	if ctx.EnableTLS {
+		fmt.Println("https server on ", ctx.Address)
+		err = http.ListenAndServeTLS(ctx.Address, "cer.pem", "key.pem", nil)
 	} else {
-		fmt.Println("http server on ", address)
-		err = http.ListenAndServe(address, nil)
+		fmt.Println("http server on ", ctx.Address)
+		err = http.ListenAndServe(ctx.Address, nil)
 	}
 	if err != nil {
 		fmt.Println("run thie service to failed on error = ", err)
 	}
+}
+
+func taskCreateHtml(w http.ResponseWriter, r *http.Request, context *WebContext, buff []byte) {
+	ID := GetQueryParamByKey(r, "orderID")
+	var order *task.Task
+	var err error
+	if ID == "" {
+		order, err = nil, nil
+	} else {
+		order, err = context.TaskAPI.GetTask(ID)
+	}
+	result := new(JsonResponse)
+	if err != nil {
+		result.Error = true
+		result.Message = err.Error()
+	}
+	result.Data = order
+
+	html := tools.RenderHtmlObject(buff, result)
+	w.Write(html)
 }

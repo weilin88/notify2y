@@ -1,16 +1,22 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"os"
 	"strconv"
 	"time"
+
+	_ "embed"
 
 	"github.com/weilin88/notify2y/cmd"
 	"github.com/weilin88/notify2y/core"
 	"github.com/weilin88/notify2y/one"
 	"github.com/weilin88/notify2y/task"
 )
+
+//go:embed static/*
+var staticSource embed.FS
 
 func setFuns(ct *cmd.Context) {
 	ct.CmdMap = map[string]*cmd.Program{}
@@ -213,7 +219,12 @@ func setFuns(ct *cmd.Context) {
 		"s",
 		"https",
 		false,
-		"enable https service ,need cacert.pem ,privkey.pem on current dir"}
+		"enable https service ,need pri.key ,cert.key on current dir"}
+	pro.ParamDefMap["e"] = &cmd.ParamDef{
+		"e",
+		"embed",
+		false,
+		"enable embed static source,default using static dir."}
 	pro.ParamDefMap["u"] = &cmd.ParamDef{
 		"u",
 		"url",
@@ -227,16 +238,24 @@ func setFuns(ct *cmd.Context) {
 			cmd.PrintCmdHelp(pro)
 			return
 		}
-		address := ":8080"
+		ctx := new(WebContext)
+		ctx.Address = ":8080"
 		upp := ct.ParamGroupMap["u"]
 		if upp != nil {
-			address = upp.Value
+			ctx.Address = upp.Value
 		}
-		https := false
 		if ct.ParamGroupMap["s"] != nil {
-			https = true
+			ctx.EnableTLS = true
+		} else {
+			ctx.EnableTLS = false
 		}
-		Serivce(address, https)
+
+		if ct.ParamGroupMap["e"] != nil {
+			ctx.EnableEmbed = true
+		} else {
+			ctx.EnableEmbed = false
+		}
+		Serivce(ctx)
 	}
 	pro = new(cmd.Program)
 	pro.Name = "users"

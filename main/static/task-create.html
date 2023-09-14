@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>create task</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../static/bootstrap.min.css" rel="stylesheet">
+  <script src="../static/bootstrap.bundle.min.js"></script>
+  <script type="text/javascript" src="../static/vue.min.js"> </script>
+  <script type="text/javascript" src="../static/cylx.js"> </script>
+  <script type="text/javascript" src="../static/app.js"> </script>
+</head>
+<body>
+<div class="container-fluid mt-3" id="page">
+	<div id="create-page">
+		<div class="text-center">
+		<h5>{{titleShow.header}}</h5>
+		</div>
+		<div class="row pl-4" style="height: 70px;">
+			<div class="alert alert-danger">
+				{{msg}}
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 mb-3 mt-3">
+				<label for="text" class="form-label">发生时间：</label>
+				<input type="text" class="form-control" placeholder="请输入发生时间"  >
+			</div>
+			<div class="col-sm-3 mb-3 mt-3">
+				<label for="text" class="form-label">ID：</label>
+				<input type="text"  class="form-control"  v-model.trim="curTask.id" disabled >
+			</div>
+			<div class="col-sm-3 mb-3 mt-3">
+				<label for="text" class="form-label">task type：</label>
+				<input type="text"  class="form-control" placeholder="pls enter type" v-model="curTask.type" disabled>
+			</div>
+			<div class="col-sm-3 mb-3 mt-3">
+				<label for="text" class="form-label">other：</label>
+				<input type="text"  class="form-control" placeholder="" v-model.trim="curTask.importance">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-10 mb-3 mt-3">
+				<label for="text" class="form-label">Suject：</label>
+				<input type="text" class="form-control" v-model="curTask.subject" >
+			</div>
+
+		</div>
+		<div class="row">
+			<div class="col-sm-10 mb-3 mt-3">
+				<label for="text" class="form-label">content：</label>
+				<input type="text" class="form-control" v-model="curTask.Content" >
+			</div>
+
+		</div>
+		<div class="row">
+			<div class="col-sm-2">
+				<button type="submit" class="btn btn-primary" @click="createTask" >{{titleShow.opBtn}}</button>
+			</div>
+			<div class="col-sm-8">
+			</div>
+			<div class="col-sm-2">
+				<button type="submit" class="btn btn-primary" >刷新基础数据</button>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+</body>
+<script>
+/*
+
+type Task struct {
+	ID         string `json:"id"`
+	Version    int    `json:"version"`
+	Subject    string `json:"subject"`
+	Type       string `json:"type"`
+	Content    string `json:"Content"`
+	Importance string `json:"importance"`
+	Deadline one.Timestamp `json:"sentDateTime"`
+	CreatedDateTime      one.Timestamp `json:"createdDateTime"`
+	LastModifiedDateTime one.Timestamp `json:"lastModifiedDateTime"`
+}
+*/
+var PAGE_DATA={};
+
+////PAGE_DATA=
+window.vueapp = {
+	init:function(){
+		let self = this;
+		let view = new Vue(self.vueConfig);
+        	self.$view = view;
+	},
+	vueConfig:{
+		el:"#page",
+		data:{
+			content:"",
+			msg:"",
+			TimeoutHander:0,
+			curTask:{
+				id:"",
+				version:0,
+				subject:"",
+				Content:"",
+				type:"IM",
+				importance:"",
+				sentDateTime:new Date(),
+				createdDateTime:new Date(),
+				lstModifiedDateTime:new Date(),
+				Sales:""
+			},
+			titleShow:{
+				header:"create task",
+				opBtn:"提交订单"
+			},
+			baseData:{
+				consumerList:[],
+				carList:[]
+			}
+		},
+		computed: {
+		},  
+		watch:{
+		content(curVal,oldVal){
+			window.saveCount++;
+	　　　　　　　}
+		},
+		methods:{
+			clearMessage:function(){
+				let self = this;
+				if( self.TimeoutHander != 0 ){
+					console.info("cancel timeout tid = "+self.TimeoutHander);
+					clearTimeout(self.TimeoutHander);
+				}
+				let tid = window.setTimeout(()=>{
+					self.msg = "";
+					self.TimeoutHander = 0;
+				},20000);
+				console.info("tid = "+tid);
+				self.TimeoutHander = tid;
+			},
+			showMessage:function(m){
+				let self = this;
+				let dateInfo = (new Date()).Format("yyyy-MM-dd hh:mm:ss");
+				self.msg = dateInfo+" #"+m;
+				self.clearMessage();
+			},
+			checkOrderData:function(){
+				let self = this;
+				let order = self.curTask;
+				if(!order.subject) {
+					self.showMessage("subject can not be empty");
+					return false;
+				}
+				if(!order.Content) {
+					self.showMessage("content can not be empty");
+					return false;
+				}
+				return true;
+			},
+			createTask:async function(){
+				let self = this;
+
+				if(!self.checkOrderData()){
+					return
+				}
+				let orderData = JSON.stringify(self.curTask);
+				console.info("task =");
+				console.info(orderData);
+
+				let ret = await cylx.promiseAjax(
+					{
+					method:"POST",
+					url:getAPIUrl("/call?method=createTask"),
+					body:newRequest([orderData])
+					}
+				);
+				console.info("ret ="+JSON.stringify(ret));
+				//network error
+				if(ret.error) {
+					let tmpMsg = "network error :"+ret.body;
+					console.info(tmpMsg);
+					self.showMessage(tmpMsg);
+					console.info("network error:"+ret.body);
+					return false;
+				}
+				//server error
+				if(ret.body.Error) {
+					let tmpMsg = "err = "+ret.body.Message;
+					console.info(tmpMsg);
+					self.showMessage(tmpMsg);
+					return false;
+				}
+				self.showMessage("操作成功");
+			},
+			initPage:function(){
+				let self = this;
+				let ret = PAGE_DATA;
+				
+				//server error
+				if(ret.Error) {
+					console.info("err = "+ret.Message);
+					return false;
+				}
+				//修改
+				if(ret.Data) {
+					self.curTask =  ret.Data;
+					self.titleShow.header = "update task";
+					self.titleShow.opBtn= "提交更新";
+					document.title = "update task";
+				} else {
+					// TODO 
+				}
+			}
+		}
+	}
+}
+
+vueapp.init();
+vueapp.$view.initPage();
+</script>
+</html>
