@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>list task</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="bootstrap.min.css" rel="stylesheet">
+  <style>
+	.cloID {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow:ellipsis;
+		max-width:30px; 
+	}
+  </style>
+  <script src="bootstrap.bundle.min.js"></script>
+  <script type="text/javascript" src="vue.min.js"> </script>
+  <script type="text/javascript" src="cylx.js"> </script>
+  <script type="text/javascript" src="app.js"> </script>
+</head>
+<body>
+<div class="container-fluid mt-3" id="page">
+	<div><a href="#taskList" class="btn btn-primary" data-bs-toggle="collapse">折叠搜索栏</a></div>
+	<div id="taskList">
+		<div class="row pl-4" style="height: 70px;">
+			<div class="alert alert-danger">
+				{{msg}}
+			</div>
+		</div>
+		<div class="row">
+			<div class="list-inline">
+				<div class="list-inline-item">
+					<span @click="search" type="button" class="btn btn-primary">list task</span>
+				</div>
+				<div class="list-inline-item">
+					  <input v-model.trim="searchCondition.key" type="text" class="form-control" style="max-width:240px" placeholder="" />
+				</div>
+				<div class="list-inline-item">
+					  <input v-model.trim="searchCondition.key" type="text" class="form-control" style="max-width:240px" placeholder="" />
+				</div>
+			</div>
+		</div>
+		<!--
+		<div class="row">
+			<div for="cat" class="col-sm-1">类别</div>
+			<div class="col-sm-2">
+				<select class="form-select" id="cat" v-model="searchCondition.cat">
+					<option value="沙子">沙子</option>
+					<option value="原石">原石</option>
+					<option value="劳务费">劳务费</option>
+					<option value="装车费">装车费</option>
+				</select>
+			</div>
+
+		</div>
+		-->
+	</div>
+
+	<div>
+		<table class="table">
+		<thead>
+		<tr>
+			<th><input class="form-check-input" type="checkbox" v-model="listAllSelect" @click="checkListAll"></th>
+			<th>ID</th>
+			<th @dblclick="sortConsumer">blank</th>
+			<th>type</th>
+			<th>subject</th>
+			<th>content</th>
+		</tr>
+		</thead>
+		 <tbody>
+		<tr v-for="task in taskList" >
+			<td><input class="form-check-input" type="checkbox" v-model="task.selected"></td>
+			<td class="cloID" @dblclick="updateTask(task)" >{{task.id}}</td>
+			<td>blank</td>
+			<td>{{task.type}}</td>
+			<td @dblclick="detailTask(task)">{{task.subject}}</td>
+			<td>{{task.Content}}</td>
+		</tr>
+		</tbody>
+		</table>
+
+	</div>
+
+</div>
+
+</body>
+<script>
+window.vueapp = {
+	init:function(){
+		let self = this;
+		let view = new Vue(self.vueConfig);
+        	self.$view = view;
+	},
+	vueConfig:{
+		el:"#page",
+		data:{
+			msg:"",
+			TimeoutHander:0,
+			taskList:[],
+			listAllSelect:false,
+			searchCondition:{
+				key:""
+			}
+		},
+		computed: {
+		},  
+		watch:{
+			content(curVal,oldVal){
+				window.saveCount++;
+	　　　	　}
+		},
+		methods:{
+			clearMessage:function(){
+				let self = this;
+				if( self.TimeoutHander != 0 ){
+					console.info("cancel timeout tid = "+self.TimeoutHander);
+					clearTimeout(self.TimeoutHander);
+				}
+				let tid = window.setTimeout(()=>{
+					self.msg = "";
+					self.TimeoutHander = 0;
+				},20000);
+				console.info("tid = "+tid);
+				self.TimeoutHander = tid;
+			},
+			showMessage:function(m){
+				let self = this;
+				let dateInfo = (new Date()).Format("yyyy-MM-dd hh:mm:ss");
+				self.msg = dateInfo+" #"+m;
+				self.clearMessage();
+			},
+			ListActressPage:async function(p){
+				let self = this;
+				let searchCondition = this.searchCondition;
+				let ret = await cylx.promiseAjax(
+					{
+					method:"POST",
+					url:getAPIUrl("/call?method=sales"),
+					body:newRequest([])
+					}
+				);
+				console.info("ret ="+JSON.stringify(ret));
+				//network error
+				if(ret.error) {
+					let tmpMsg = "network error:"+ret.body;
+					console.info(tmpMsg);
+					self.showMessage(tmpMsg);
+					return false;
+				}
+				//server error
+				if(ret.body.Error) {
+					let tmpMsg = "err = "+ret.body.Message;
+					console.info(tmpMsg);
+					self.showMessage(tmpMsg);
+					return false;
+				}
+				let orderList = ret.body.Data;
+
+				self.taskList = orderList;
+				for(order of orderList){
+					console.info(order.subject);
+				}
+				return true;
+			},
+			search:async function(){
+				let self = this;
+				await self.ListActressPage("1");
+			},
+			updateTask:function(task){
+				let self = this;
+				let midURL = getAPIUrl("/html/task-create.html?id=");
+				window.open(midURL+task.id);
+			},
+			detailTask:function(task){
+				let self = this;
+				let midURL = getAPIUrl("/html/task-detail.html?id=")
+				window.open(midURL+task.id);
+			},
+			checkListAll:function(){
+				let self = this;
+				for(obj of self.taskList) {
+					obj.selected = self.listAllSelect;
+				}
+			},
+			sortConsumer:function(){
+				let self = this;
+				let nlist = self.taskList.sort(function(o1,o2){
+					return o2.Consumer.localeCompare(o1.Consumer);
+				});
+				self.taskList = nlist;
+			},
+			initPage:function(){
+				let self = this;
+				//self.searchCondition.dates = defaultDates;
+			}
+		}
+	}
+}
+
+vueapp.init();
+vueapp.$view.initPage();
+</script>
+</html>

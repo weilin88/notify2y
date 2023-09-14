@@ -53,6 +53,7 @@ func (s *TaskService) AddTask(t *Task) error {
 	if s.index[t.ID] != nil {
 		return fmt.Errorf("exist task, id = %s", t.ID)
 	}
+	t.Version = 1
 	s.taskData = append(s.taskData, t)
 	s.index[t.ID] = t
 	s.saveAll()
@@ -72,6 +73,9 @@ func (s *TaskService) UpdateTask(t *Task) error {
 		old.Content = t.Content
 		old.Subject = t.Subject
 		old.Deadline = t.Deadline
+		old.Version++
+		//return to UI
+		t.Version = old.Version
 		s.saveAll()
 		return nil
 	}
