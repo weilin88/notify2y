@@ -10,7 +10,11 @@ import (
 
 type Tools struct{}
 
-func (t *Tools) GetFileContent(root http.FileSystem, fileName string) ([]byte, error) {
+func (t *Tools) GetFileContent(context *WebContext, root http.FileSystem, fileName string) ([]byte, error) {
+	//fix not found bug
+	if context.EnableEmbed {
+		fileName = "/static/" + fileName
+	}
 	f, err := root.Open(fileName)
 	if err != nil {
 		return nil, err

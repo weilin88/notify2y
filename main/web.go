@@ -142,8 +142,10 @@ func Serivce(ctx *WebContext) {
 		</html>`
 		sourceHtml := filepath.Base(r.URL.Path)
 		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		buff, err := tools.GetFileContent(httpRoot, sourceHtml)
+
+		buff, err := tools.GetFileContent(ctx, httpRoot, sourceHtml)
 		if err != nil {
+			fmt.Printf("load source file to fail,file = %s,err = %s\n", sourceHtml, err.Error())
 			w.Write([]byte(notFoundHtml))
 		} else {
 			if sourceHtml == "task-create.html" {
