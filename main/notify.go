@@ -181,7 +181,7 @@ func setFuns(ct *cmd.Context) {
 			return
 		}
 		if ct.ParamGroupMap["t"] != nil {
-			notify2You(person)
+			backend(person)
 		} else {
 			for {
 				waitTime(person)
@@ -393,30 +393,6 @@ func setFuns(ct *cmd.Context) {
 
 }
 
-func notify2You(person string) {
-	cli, err := one.NewOneClient()
-	if err != nil {
-		fmt.Println("err = ", err)
-		return
-	}
-	s := new(task.TaskService)
-	err = s.Init()
-	if err != nil {
-		fmt.Println("err = ", err)
-		return
-	}
-	li, err := s.ListTask()
-	for _, v := range li {
-		if v.Type == "IM" {
-			err = cli.APISendMail(person, v.Subject, v.Content, "text")
-			if err != nil {
-				fmt.Printf("err = %s\n", err.Error())
-			} else {
-				fmt.Printf("sended\n")
-			}
-		}
-	}
-}
 func waitTime(person string) {
 	now := time.Now()
 
@@ -438,7 +414,21 @@ func waitTime(person string) {
 	<-timer.C
 
 	//fmt.Println("It's 10:00 AM. Running your function now.")
-	notify2You(person)
+	backend(person)
+}
+func backend(person string) {
+	taskS := new(task.TaskService)
+	err := taskS.Init()
+	if err != nil {
+		fmt.Println("err = ", err)
+		return
+	}
+	cli, err := one.NewOneClient()
+	if err != nil {
+		fmt.Println("err = ", err)
+		return
+	}
+	taskS.Notify2You(cli, person)
 }
 func main() {
 	core.Debug = true

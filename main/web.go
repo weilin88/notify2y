@@ -127,46 +127,8 @@ func Serivce(ctx *WebContext) {
 	ctx.Cli = cli
 	ctx.TaskAPI = s
 
-	http.HandleFunc("/debug", func(w http.ResponseWriter, r *http.Request) {
-		uu := r.URL.String()
-		var buff bytes.Buffer
-		buff.WriteString("HOST = ")
-		buff.WriteString(r.RemoteAddr)
-		buff.WriteString("\n")
-
-		buff.WriteString("method = ")
-		buff.WriteString(r.Method)
-		buff.WriteString("\n")
-
-		buff.WriteString("url = ")
-		buff.WriteString(uu)
-		buff.WriteString("\n")
-
-		buff.WriteString("header = ")
-		for k, v := range r.Header {
-			buff.WriteString(k)
-			buff.WriteString(":")
-			if len(v) == 1 {
-				buff.WriteString(v[0])
-			} else {
-				for _, sv := range v {
-					buff.WriteString(sv)
-					buff.WriteString(";")
-				}
-			}
-			buff.WriteString("\n")
-		}
-		buff.WriteString("\n")
-		buff.WriteString("body = ")
-		if r.Body != nil {
-			defer r.Body.Close()
-			io.Copy(&buff, r.Body)
-		}
-		w.Write(buff.Bytes())
-	})
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("{\"error\":\"ok\"}"))
+		w.Write([]byte("{\"error\":\"cannot access /\"}"))
 	})
 
 	http.HandleFunc("/html/", func(w http.ResponseWriter, r *http.Request) {
@@ -214,6 +176,8 @@ func Serivce(ctx *WebContext) {
 			api.DelTask(req, result)
 		case "sales":
 			api.SearchTask(req, result)
+		case "notify2you":
+			api.TaskNotify2You(req, result)
 		default:
 			result.Error = true
 			result.Message = "can not find called method :" + method

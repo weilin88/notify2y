@@ -60,7 +60,7 @@
 			<div class="col-sm-8">
 			</div>
 			<div class="col-sm-2">
-				<button type="submit" class="btn btn-primary" >刷新基础数据</button>
+				<button type="submit" class="btn btn-primary" @click="notify2you">send email</button>
 			</div>
 		</div>
 	</div>
@@ -174,6 +174,35 @@ window.vueapp = {
 					method:"POST",
 					url:getAPIUrl("/call?method=createTask"),
 					body:newRequest([orderData])
+					}
+				);
+				console.info("ret ="+JSON.stringify(ret));
+				//network error
+				if(ret.error) {
+					let tmpMsg = "network error :"+ret.body;
+					console.info(tmpMsg);
+					self.showMessage(tmpMsg);
+					console.info("network error:"+ret.body);
+					return false;
+				}
+				//server error
+				if(ret.body.Error) {
+					let tmpMsg = "err = "+ret.body.Message;
+					console.info(tmpMsg);
+					self.showMessage(tmpMsg);
+					return false;
+				}
+				self.showMessage("操作成功");
+			},
+			notify2you:async function(){
+				let self = this;
+				let task = self.curTask;
+				console.info("task ="+JSON.stringify(task));
+				let ret = await cylx.promiseAjax(
+					{
+					method:"POST",
+					url:getAPIUrl("/call?method=notify2you"),
+					body:newRequest([task.id])
 					}
 				);
 				console.info("ret ="+JSON.stringify(ret));

@@ -134,3 +134,34 @@ func (s *TaskService) Init() error {
 	}
 	return nil
 }
+
+func (s *TaskService) Notify2You(cli *one.OneClient, person string) {
+	li, err := s.ListTask()
+	for _, v := range li {
+		if v.Type == "IM" {
+			err = cli.APISendMail(person, v.Subject, v.Content, "text")
+			if err != nil {
+				fmt.Printf("err = %s\n", err.Error())
+			} else {
+				fmt.Printf("sended\n")
+			}
+		}
+	}
+}
+
+func (s *TaskService) TaskNotify2You(cli *one.OneClient, person string, id string) error {
+	v := s.index[id]
+	if person == "" {
+		return fmt.Errorf("person cannot be empty")
+	}
+	if v != nil && v.Type == "IM" {
+		err := cli.APISendMail(person, v.Subject, v.Content, "text")
+		if err != nil {
+			fmt.Printf("err = %s\n", err.Error())
+		} else {
+			fmt.Printf("sended\n")
+		}
+		return err
+	}
+	return fmt.Errorf("not found fit task")
+}

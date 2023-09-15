@@ -42,3 +42,12 @@ function cylxFixed(num, digit) {
   let ret = (Math.round((num + Number.EPSILON) * Math.pow(10, digit)) / Math.pow(10, digit)).toFixed(digit);
   return Number(ret);
 }
+
+window.setApi = function(){
+	var currentPath = window.location.pathname;
+	if (currentPath.startsWith("/notify/")) {
+		window.appPrefix = "/notify"; 
+	} 
+	console.info("api Prefix = "+window.appPrefix);
+}
+window.setApi();
