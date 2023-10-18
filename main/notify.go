@@ -21,6 +21,7 @@ var staticSource embed.FS
 func setFuns(ct *cmd.Context) {
 	ct.CmdMap = map[string]*cmd.Program{}
 
+	//#list
 	pro := new(cmd.Program)
 	pro.Name = "list"
 	pro.Desc = "list email"
@@ -97,6 +98,7 @@ func setFuns(ct *cmd.Context) {
 	}
 
 	//next remove command
+	//#send
 	pro = new(cmd.Program)
 	pro.Name = "send"
 	pro.Desc = "send mail"
@@ -144,6 +146,7 @@ func setFuns(ct *cmd.Context) {
 			fmt.Printf("sended\n")
 		}
 	}
+	//#notify
 	pro = new(cmd.Program)
 	pro.Name = "notify"
 	pro.Desc = "notify to you,env runTime"
@@ -191,6 +194,7 @@ func setFuns(ct *cmd.Context) {
 	}
 
 	//next add new user
+	//#auth
 	pro = new(cmd.Program)
 	pro.Name = "auth"
 	pro.Desc = "get a auth for new user"
@@ -213,6 +217,7 @@ func setFuns(ct *cmd.Context) {
 		cli.DoAutoForNewUser()
 	}
 
+	//#web
 	pro = new(cmd.Program)
 	pro.Name = "web"
 	pro.Desc = "run this http super serivce (beta version)"
@@ -220,25 +225,25 @@ func setFuns(ct *cmd.Context) {
 	pro.ParamDefMap = map[string]*cmd.ParamDef{}
 
 	pro.ParamDefMap["h"] = &cmd.ParamDef{
-		"h",
-		"help",
-		false,
-		"print help"}
+		Name:      "h",
+		LongName:  "help",
+		NeedValue: false,
+		Desc:      "print help"}
 	pro.ParamDefMap["s"] = &cmd.ParamDef{
-		"s",
-		"https",
-		false,
-		"enable https service ,need pri.key ,cert.key on current dir"}
+		Name:      "s",
+		LongName:  "https",
+		NeedValue: false,
+		Desc:      "enable https service ,need pri.key ,cert.key on current dir"}
 	pro.ParamDefMap["e"] = &cmd.ParamDef{
-		"e",
-		"embed",
-		false,
-		"enable embed static source,default using static dir."}
+		Name:      "e",
+		LongName:  "embed",
+		NeedValue: false,
+		Desc:      "enable embed static source,default using static dir."}
 	pro.ParamDefMap["u"] = &cmd.ParamDef{
-		"u",
-		"url",
-		true,
-		"setup service address for this service,as -u :5555"}
+		Name:      "u",
+		LongName:  "url",
+		NeedValue: true,
+		Desc:      "setup service address for this service,as -u :5555"}
 
 	ct.CmdMap[pro.Name] = pro
 	pro.Cmd = func(pro *cmd.Program) {
@@ -266,6 +271,8 @@ func setFuns(ct *cmd.Context) {
 		}
 		Serivce(ctx)
 	}
+
+	//#users
 	pro = new(cmd.Program)
 	pro.Name = "users"
 	pro.Desc = "list login users"
@@ -273,10 +280,10 @@ func setFuns(ct *cmd.Context) {
 	pro.ParamDefMap = map[string]*cmd.ParamDef{}
 
 	pro.ParamDefMap["h"] = &cmd.ParamDef{
-		"h",
-		"help",
-		false,
-		"print help"}
+		Name:      "h",
+		LongName:  "help",
+		NeedValue: false,
+		Desc:      "print help"}
 	ct.CmdMap[pro.Name] = pro
 	pro.Cmd = func(pro *cmd.Program) {
 		if ct.ParamGroupMap["h"] != nil {
@@ -298,6 +305,7 @@ func setFuns(ct *cmd.Context) {
 		}
 	}
 	//swich to other session
+	//#su
 	pro = new(cmd.Program)
 	pro.Name = "su"
 	pro.Desc = "swich to other logined user"
@@ -305,10 +313,10 @@ func setFuns(ct *cmd.Context) {
 	pro.ParamDefMap = map[string]*cmd.ParamDef{}
 
 	pro.ParamDefMap["h"] = &cmd.ParamDef{
-		"h",
-		"help",
-		false,
-		"print help"}
+		Name:      "h",
+		LongName:  "help",
+		NeedValue: false,
+		Desc:      "print help"}
 
 	ct.CmdMap[pro.Name] = pro
 	pro.Cmd = func(pro *cmd.Program) {
@@ -331,6 +339,7 @@ func setFuns(ct *cmd.Context) {
 	}
 
 	//next program
+	//#saveUser
 	pro = new(cmd.Program)
 	pro.Name = "saveUser"
 	pro.Desc = "save current user to name"
@@ -338,10 +347,10 @@ func setFuns(ct *cmd.Context) {
 	pro.ParamDefMap = map[string]*cmd.ParamDef{}
 
 	pro.ParamDefMap["h"] = &cmd.ParamDef{
-		"h",
-		"help",
-		false,
-		"print help"}
+		Name:      "h",
+		LongName:  "help",
+		NeedValue: false,
+		Desc:      "print help"}
 
 	ct.CmdMap[pro.Name] = pro
 	pro.Cmd = func(pro *cmd.Program) {
@@ -364,6 +373,7 @@ func setFuns(ct *cmd.Context) {
 		}
 	}
 	//next program
+	//#who
 	pro = new(cmd.Program)
 	pro.Name = "who"
 	pro.Desc = "show current user name"
@@ -371,10 +381,10 @@ func setFuns(ct *cmd.Context) {
 	pro.ParamDefMap = map[string]*cmd.ParamDef{}
 
 	pro.ParamDefMap["h"] = &cmd.ParamDef{
-		"h",
-		"help",
-		false,
-		"print help"}
+		Name:      "h",
+		LongName:  "help",
+		NeedValue: false,
+		Desc:      "print help"}
 
 	ct.CmdMap[pro.Name] = pro
 	pro.Cmd = func(pro *cmd.Program) {
