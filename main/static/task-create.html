@@ -23,8 +23,8 @@
 		</div>
 		<div class="row">
 			<div class="col-sm-3 mb-3 mt-3">
-				<label for="text" class="form-label">发生时间：</label>
-				<input type="text" class="form-control" placeholder="请输入发生时间"  >
+				<label for="text" class="form-label">Cron schedule：</label>
+				<input type="text" class="form-control" v-model.trim="curTask.cron" placeholder="pls enter Cron schedule"  >
 			</div>
 			<div class="col-sm-3 mb-3 mt-3">
 				<label for="text" class="form-label">ID：</label>
@@ -49,7 +49,7 @@
 		<div class="row">
 			<div class="col-sm-10 mb-3 mt-3">
 				<label for="text" class="form-label">content：</label>
-				<textarea for="text" class="form-control" style="height:250px" v-model="curTask.Content" > </textarea>
+				<textarea for="text" class="form-control" style="height:250px" v-model="curTask.content" > </textarea>
 			</div>
 
 		</div>
@@ -69,20 +69,76 @@
 
 </body>
 <script>
-/*
 
-type Task struct {
-	ID         string `json:"id"`
-	Version    int    `json:"version"`
-	Subject    string `json:"subject"`
-	Type       string `json:"type"`
-	Content    string `json:"Content"`
-	Importance string `json:"importance"`
-	Deadline one.Timestamp `json:"sentDateTime"`
-	CreatedDateTime      one.Timestamp `json:"createdDateTime"`
-	LastModifiedDateTime one.Timestamp `json:"lastModifiedDateTime"`
+
+function validateCronExpression(cronExpression) {
+  const parts = cronExpression.split(' ');
+
+  if (parts.length !== 5) {
+    return false; 
+  }
+
+  const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
+
+  return (
+    isValidPart(minute, 0, 59) &&
+    isValidPart(hour, 0, 23) &&
+    isValidPart(dayOfMonth, 1, 31) &&
+    isValidPart(month, 1, 12) &&
+    isValidDayOfWeek(dayOfWeek)
+  );
 }
-*/
+
+function isValidPart(part, min, max) {
+  console.info(part+"#"+min+"#"+max);
+
+  if (part === '*') {
+    return true;
+  }
+  const pattern = /^\*\/(\d+)$/;
+
+  if ( pattern.test(part) ) {
+	return true;
+  }
+
+  if (part.includes('-')) {
+    const [start, end] = part.split('-');
+    return !isNaN(start) && !isNaN(end) && parseInt(start) >= min && parseInt(end) <= max;
+  }
+
+  if (part.includes(',')) {
+    const values = part.split(',');
+    return values.every(value => !isNaN(value) && parseInt(value) >= min && parseInt(value) <= max);
+  }
+
+
+  return !isNaN(part) && parseInt(part) >= min && parseInt(part) <= max;
+}
+
+function isValidDayOfWeek(dayOfWeek) {
+
+  const dayOfWeekValues = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+  if (dayOfWeek === '*') {
+    return true;
+  }
+
+  if (dayOfWeek.includes('-')) {
+    const [start, end] = dayOfWeek.split('-');
+    return dayOfWeekValues.includes(start) && dayOfWeekValues.includes(end);
+  }
+
+  if (dayOfWeek.includes(',')) {
+    const values = dayOfWeek.split(',');
+    return values.every(value => dayOfWeekValues.includes(value));
+  }
+  return dayOfWeekValues.includes(dayOfWeek);
+}
+
+const cronExpression = '*/5 1 2,3 1-12 *'; 
+validateCronExpression(cronExpression);
+
+
 var PAGE_DATA={};
 
 ////PAGE_DATA=
@@ -102,9 +158,10 @@ window.vueapp = {
 				id:"",
 				version:0,
 				subject:"",
-				Content:"",
+				content:"",
 				type:"IM",
 				importance:"",
+				cron:"",
 				sentDateTime:new Date(),
 				createdDateTime:new Date(),
 				lstModifiedDateTime:new Date(),
@@ -153,7 +210,7 @@ window.vueapp = {
 					self.showMessage("subject can not be empty");
 					return false;
 				}
-				if(!order.Content) {
+				if(!order.content) {
 					self.showMessage("content can not be empty");
 					return false;
 				}

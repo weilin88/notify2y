@@ -11,6 +11,7 @@ import (
 
 	"github.com/weilin88/notify2y/cmd"
 	"github.com/weilin88/notify2y/core"
+	ncron "github.com/weilin88/notify2y/cron"
 	"github.com/weilin88/notify2y/one"
 	"github.com/weilin88/notify2y/task"
 )
@@ -186,10 +187,7 @@ func setFuns(ct *cmd.Context) {
 		if ct.ParamGroupMap["t"] != nil {
 			backend(person)
 		} else {
-			for {
-				waitTime(person)
-				time.Sleep(time.Hour)
-			}
+			cron(person)
 		}
 	}
 
@@ -439,6 +437,29 @@ func backend(person string) {
 		return
 	}
 	taskS.Notify2You(cli, person)
+}
+func cron(person string) {
+	taskS := new(task.TaskService)
+	err := taskS.Init()
+	if err != nil {
+		fmt.Println("err = ", err)
+		return
+	}
+	cli, err := one.NewOneClient()
+	if err != nil {
+		fmt.Println("err = ", err)
+		return
+	}
+	taskS.NotifySender = cli
+	taskS.Person = person
+
+	crr := new(ncron.CronManager)
+	crr.TaskService = taskS
+	crr.Start()
+	for {
+		fmt.Println("next 1 min")
+		time.Sleep(time.Minute)
+	}
 }
 func main() {
 	core.Debug = true

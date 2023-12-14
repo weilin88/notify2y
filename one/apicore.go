@@ -441,6 +441,19 @@ func NewOneClientUser(user string) (*OneClient, error) {
 	}
 	return cli, nil
 }
+func (cli *OneClient) ExpresCheck() error {
+	tk := cli.Token
+	expires := time.Time(tk.ExpiresTime)
+	if time.Now().After(expires) {
+		core.Println("to expries time, update token")
+		newToken, err := cli.UpdateToken()
+		if err != nil {
+			return err
+		}
+		cli.Token = newToken
+	}
+	return nil
+}
 
 //GetTokenHeader for other client
 func (cli *OneClient) GetTokenHeader() map[string]string {

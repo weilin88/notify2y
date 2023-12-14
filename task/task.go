@@ -17,10 +17,11 @@ type Task struct {
 	Version    int    `json:"version"`
 	Subject    string `json:"subject"`
 	Type       string `json:"type"`
-	Content    string `json:"Content"`
+	Content    string `json:"content"`
 	Importance string `json:"importance"`
 
 	Deadline one.Timestamp `json:"sentDateTime"`
+	Cron     string        `json:"cron"`
 
 	CreatedDateTime      one.Timestamp `json:"createdDateTime"`
 	LastModifiedDateTime one.Timestamp `json:"lastModifiedDateTime"`
@@ -35,6 +36,7 @@ func (t *Task) Copy() *Task {
 	n.Importance = t.Importance
 	n.Subject = t.Subject
 	n.Type = t.Type
+	n.Cron = t.Cron
 	n.Version = t.Version
 	return n
 }
@@ -42,8 +44,10 @@ func (t *Task) Copy() *Task {
 const data_json = "task_data.json"
 
 type TaskService struct {
-	taskData []*Task
-	index    map[string]*Task
+	NotifySender *one.OneClient
+	Person       string
+	taskData     []*Task
+	index        map[string]*Task
 }
 
 func (s *TaskService) AddTask(t *Task) error {
@@ -73,6 +77,7 @@ func (s *TaskService) UpdateTask(t *Task) error {
 		old.Content = t.Content
 		old.Subject = t.Subject
 		old.Deadline = t.Deadline
+		old.Cron = t.Cron
 		old.Version++
 		//return to UI
 		t.Version = old.Version
@@ -146,6 +151,19 @@ func (s *TaskService) Notify2You(cli *one.OneClient, person string) {
 				fmt.Printf("sended\n")
 			}
 		}
+	}
+}
+func (s *TaskService) SendMail(v *Task) {
+	err := s.NotifySender.ExpresCheck()
+	if err != nil {
+		fmt.Println("err = ", err)
+		return
+	}
+	err = s.NotifySender.APISendMail(s.Person, v.Subject, v.Content, "text")
+	if err != nil {
+		fmt.Printf("err = %s\n", err.Error())
+	} else {
+		fmt.Printf("sended\n")
 	}
 }
 
