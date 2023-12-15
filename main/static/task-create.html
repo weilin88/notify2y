@@ -214,6 +214,10 @@ window.vueapp = {
 					self.showMessage("content can not be empty");
 					return false;
 				}
+				if( order.cron && (!validateCronExpression(order.cron))) {
+					self.showMessage("cron rule error");
+					return false;
+				}
 				return true;
 			},
 			createTask:async function(){

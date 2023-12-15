@@ -12,6 +12,12 @@ func Test_Common(t *testing.T) {
 		fmt.Println("err = ", err)
 		return
 	}
-	task := Task{Content: "you goal list.", Subject: "import message", Type: "IM"}
-	s.AddTask(&task)
+	l, err := s.ListTask()
+	if err != nil {
+		fmt.Println("err = ", err)
+		return
+	}
+	for _, v := range l {
+		fmt.Printf("subject=%s ; ID=%s \n", v.Subject, v.ID)
+	}
 }
