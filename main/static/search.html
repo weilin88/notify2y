@@ -62,7 +62,7 @@
 		<tr>
 			<th><input class="form-check-input" type="checkbox" v-model="listAllSelect" @click="checkListAll"></th>
 			<th>ID</th>
-			<th @dblclick="sortConsumer">blank</th>
+			<th @dblclick="sortConsumer">cron</th>
 			<th>type</th>
 			<th>subject</th>
 			<th>content</th>
@@ -72,10 +72,10 @@
 		<tr v-for="task in taskList" >
 			<td><input class="form-check-input" type="checkbox" v-model="task.selected"></td>
 			<td class="cloID" @dblclick="updateTask(task)" >{{task.id}}</td>
-			<td>blank</td>
+			<td>{{task.cron}}</td>
 			<td>{{task.type}}</td>
 			<td @dblclick="detailTask(task)">{{task.subject}}</td>
-			<td>{{task.Content}}</td>
+			<td>{{task.content}}</td>
 		</tr>
 		</tbody>
 		</table>
