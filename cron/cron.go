@@ -1,7 +1,7 @@
 package cron
 
 import (
-	fmt "log"
+	"fmt"
 
 	"github.com/robfig/cron/v3"
 	"github.com/weilin88/notify2y/task"

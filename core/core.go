@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -56,7 +55,7 @@ type ThreadPool struct {
 func tryCatchException(id int, task *ThreadTask) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Println("execute task to failed,err = ", err)
+			fmt.Println("execute task to failed,err = ", err)
 		}
 	}()
 	task.Fn(id, task.Argv)
