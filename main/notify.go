@@ -150,7 +150,7 @@ func setFuns(ct *cmd.Context) {
 	//#notify
 	pro = new(cmd.Program)
 	pro.Name = "notify"
-	pro.Desc = "notify to you,env runTime"
+	pro.Desc = "notify to you by cron"
 	pro.Usage = "usage: " + pro.Name + " [OPTION]"
 	pro.ParamDefMap = map[string]*cmd.ParamDef{}
 
