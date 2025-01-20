@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -19,7 +19,7 @@ func (t *Tools) GetFileContent(context *WebContext, root http.FileSystem, fileNa
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadAll(f)
+	return io.ReadAll(f)
 }
 func (t *Tools) RenderHtmlObject(html []byte, obj interface{}) []byte {
 	buff := bytes.Buffer{}

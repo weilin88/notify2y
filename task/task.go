@@ -3,7 +3,6 @@ package task
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -115,19 +114,22 @@ func (s *TaskService) saveAll() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(dataFile, buff, os.ModePerm)
+	return os.WriteFile(dataFile, buff, os.ModePerm)
 }
 
 func (s *TaskService) Init() error {
 	dir := one.GetConfigDir()
 	dataFile := filepath.Join(dir, data_json)
 	if core.ExistFile(dataFile) {
-		buff, err := ioutil.ReadFile(dataFile)
+		buff, err := os.ReadFile(dataFile)
 		if err != nil {
 			return err
 		}
 		list := []*Task{}
 		err = json.Unmarshal(buff, &list)
+		if err != nil {
+			return err
+		}
 		s.taskData = list
 		s.index = map[string]*Task{}
 		for _, v := range list {
@@ -142,6 +144,10 @@ func (s *TaskService) Init() error {
 
 func (s *TaskService) Notify2You(cli *one.OneClient, person string) {
 	li, err := s.ListTask()
+	if err != nil {
+		fmt.Printf("err = %s\n", err.Error())
+		return
+	}
 	for _, v := range li {
 		if v.Type == "IM" {
 			err = cli.APISendMail(person, v.Subject, v.Content, "text")

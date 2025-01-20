@@ -86,8 +86,7 @@ func (api *API) TaskNotify2You(req *JsonRequest, result *JsonResponse) {
 	context := api.Context
 	if checkParamVaild(req, 1, result) {
 		id := req.Argvs[0]
-		var err error
-		err = context.TaskAPI.TaskNotify2You(context.Cli, APP_CONFIG.Email, id)
+		err := context.TaskAPI.TaskNotify2You(context.Cli, APP_CONFIG.Email, id)
 		if err != nil {
 			result.Error = true
 			result.Message = err.Error()
