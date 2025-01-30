@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,7 +27,7 @@ func (op *UserOP) SaveUser(user string) error {
 func (op *UserOP) SwitchUser(user string) error {
 	home := one.GetConfigDir()
 	decFile := filepath.Join(home, one.CurUser)
-	return ioutil.WriteFile(decFile, []byte(user), 0660)
+	return os.WriteFile(decFile, []byte(user), 0660)
 }
 func (op *UserOP) copyUser(userSrc string, userDec string) error {
 	src, err := os.Open(userSrc)
@@ -47,12 +46,12 @@ func (op *UserOP) copyUser(userSrc string, userDec string) error {
 func (op *UserOP) Who() (string, error) {
 	home := one.GetConfigDir()
 	decFile := filepath.Join(home, one.CurUser)
-	buff, err := ioutil.ReadFile(decFile)
+	buff, err := os.ReadFile(decFile)
 	return string(buff), err
 }
 func (op *UserOP) loopDir(dirName string) ([]string, error) {
 	li := []string{}
-	fileList, err := ioutil.ReadDir(dirName)
+	fileList, err := os.ReadDir(dirName)
 	if err != nil {
 		return nil, err
 	}

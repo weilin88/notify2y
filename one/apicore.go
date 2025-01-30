@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os/exec"
@@ -350,7 +350,7 @@ func HandleResponForParseToken(resp *http.Response, err error) (*AuthToken, erro
 	if err != nil {
 		return nil, err
 	}
-	buff, err := ioutil.ReadAll(resp.Body)
+	buff, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -382,7 +382,7 @@ func HandleResponForParseAPI(resp *http.Response, err error, objs interface{}) e
 	if err != nil {
 		return err
 	}
-	buff, err := ioutil.ReadAll(resp.Body)
+	buff, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
