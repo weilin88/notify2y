@@ -45,6 +45,7 @@ func (c *CronManager) addCron(li []*task.Task) error {
 	for _, t := range li {
 		if t.Cron != "" {
 			cid, err := c.core.AddFunc(t.Cron, func() {
+				fmt.Printf("by %s rute \n", t.Cron)
 				c.TaskService.SendMail(t)
 			})
 			if err != nil {
