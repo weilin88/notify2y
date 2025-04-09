@@ -425,12 +425,7 @@ func waitTime(person string) {
 	backend(person)
 }
 func backend(person string) {
-	taskS := new(task.TaskService)
-	err := taskS.Init()
-	if err != nil {
-		fmt.Println("err = ", err)
-		return
-	}
+	taskS := task.NewTaskService()
 	cli, err := one.NewOneClient()
 	if err != nil {
 		fmt.Println("err = ", err)
@@ -439,12 +434,7 @@ func backend(person string) {
 	taskS.Notify2You(cli, person)
 }
 func cron(person string) {
-	taskS := new(task.TaskService)
-	err := taskS.Init()
-	if err != nil {
-		fmt.Println("err = ", err)
-		return
-	}
+	taskS := task.NewTaskService()
 	cli, err := one.NewOneClient()
 	if err != nil {
 		fmt.Println("err = ", err)

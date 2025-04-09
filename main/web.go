@@ -109,8 +109,7 @@ func Serivce(ctx *WebContext) {
 	if err != nil {
 		panic(err.Error())
 	}
-	s := new(task.TaskService)
-	err = s.Init()
+	s := task.NewTaskService()
 	if err != nil {
 		fmt.Println("err = ", err)
 		panic(err.Error())

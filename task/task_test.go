@@ -6,12 +6,7 @@ import (
 )
 
 func Test_Common(t *testing.T) {
-	s := new(TaskService)
-	err := s.Init()
-	if err != nil {
-		fmt.Println("err = ", err)
-		return
-	}
+	s := NewTaskService()
 	l, err := s.ListTask()
 	if err != nil {
 		fmt.Println("err = ", err)

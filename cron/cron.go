@@ -82,10 +82,6 @@ func (c *CronManager) addTaskUpdateTask2Cron() {
 
 func (c *CronManager) Update() error {
 	fmt.Println("task cron update...")
-	err := c.TaskService.Init()
-	if err != nil {
-		return err
-	}
 	taskList, err := c.TaskService.ListTask()
 	if err != nil {
 		return err

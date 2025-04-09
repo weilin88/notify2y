@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/weilin88/notify2y/core"
@@ -45,7 +46,7 @@ const data_json = "task_data.json"
 type TaskService struct {
 	NotifySender *one.OneClient
 	Person       string
-	taskData     []*Task
+	dataLock     sync.RWMutex
 	index        map[string]*Task
 }
 
@@ -53,13 +54,14 @@ func (s *TaskService) AddTask(t *Task) error {
 	if t.ID == "" {
 		t.ID = uuid.NewV1().String()
 	}
+	s.dataLock.Lock()
 	if s.index[t.ID] != nil {
 		return fmt.Errorf("exist task, id = %s", t.ID)
 	}
 	t.Version = 1
-	s.taskData = append(s.taskData, t)
 	s.index[t.ID] = t
 	s.saveAll()
+	s.dataLock.Unlock()
 	return nil
 }
 func (s *TaskService) GetTask(ID string) (*Task, error) {
@@ -87,34 +89,49 @@ func (s *TaskService) UpdateTask(t *Task) error {
 }
 func (s *TaskService) ListTask() ([]*Task, error) {
 	nList := []*Task{}
-	for _, v := range s.taskData {
+	s.dataLock.RLock()
+	for _, v := range s.index {
 		nList = append(nList, v.Copy())
 	}
+	s.dataLock.RUnlock()
 	return nList, nil
 }
 func (s *TaskService) DelTask(ID string) error {
+	s.dataLock.Lock()
 	if s.index[ID] == nil {
 		return nil
 	}
 	delete(s.index, ID)
-	for idx, v := range s.taskData {
-		if v.ID == ID {
-			newArr := append(s.taskData[:idx], s.taskData[idx+1:]...)
-			s.taskData = newArr
-			return nil
-		}
-	}
 	s.saveAll()
+	s.dataLock.Unlock()
 	return nil
 }
 func (s *TaskService) saveAll() error {
 	dir := one.GetConfigDir()
 	dataFile := filepath.Join(dir, data_json)
-	buff, err := json.Marshal(s.taskData)
+	li := []*Task{}
+	for _, v := range s.index {
+		li = append(li, v)
+	}
+	buff, err := json.Marshal(li)
 	if err != nil {
 		return err
 	}
 	return os.WriteFile(dataFile, buff, os.ModePerm)
+}
+
+var singleTaskService *TaskService
+
+func NewTaskService() *TaskService {
+	ts := new(TaskService)
+	err := ts.Init()
+	if err != nil {
+		panic(err.Error())
+	}
+	if singleTaskService == nil {
+		singleTaskService = ts
+	}
+	return singleTaskService
 }
 
 func (s *TaskService) Init() error {
@@ -130,13 +147,11 @@ func (s *TaskService) Init() error {
 		if err != nil {
 			return err
 		}
-		s.taskData = list
 		s.index = map[string]*Task{}
 		for _, v := range list {
 			s.index[v.ID] = v
 		}
 	} else {
-		s.taskData = []*Task{}
 		s.index = map[string]*Task{}
 	}
 	return nil
