@@ -12,6 +12,7 @@ import (
 	"github.com/weilin88/notify2y/cmd"
 	"github.com/weilin88/notify2y/core"
 	ncron "github.com/weilin88/notify2y/cron"
+	"github.com/weilin88/notify2y/notify"
 	"github.com/weilin88/notify2y/one"
 	"github.com/weilin88/notify2y/task"
 )
@@ -397,6 +398,44 @@ func setFuns(ct *cmd.Context) {
 		} else {
 			fmt.Println("current user:", userName)
 		}
+	}
+	//#ntest
+	pro = new(cmd.Program)
+	pro.Name = "ntest"
+	pro.Desc = "ntest"
+	pro.Usage = "usage: " + pro.Name + " [OPTION]  [content]"
+	pro.ParamDefMap = map[string]*cmd.ParamDef{}
+
+	pro.ParamDefMap["h"] = &cmd.ParamDef{
+		Name:      "h",
+		LongName:  "help",
+		NeedValue: false,
+		Desc:      "print help"}
+
+	pro.ParamDefMap["r"] = &cmd.ParamDef{
+		Name:      "r",
+		LongName:  "recipient",
+		NeedValue: true,
+		Desc:      "recipient email"}
+	ct.CmdMap[pro.Name] = pro
+	pro.Cmd = func(pro *cmd.Program) {
+		if ct.ParamGroupMap["h"] != nil {
+			cmd.PrintCmdHelp(pro)
+			return
+		}
+		person := ""
+		if ct.ParamGroupMap["r"] != nil {
+			person = ct.ParamGroupMap["r"].Value
+		}
+		if person == "" {
+			fmt.Printf("pls enter recipient email\n")
+			return
+		}
+		engine := notify.NewEngine()
+		ll := notify.NewURLListener()
+		engine.RegisterListener(ll)
+		engine.StartAll()
+		select {}
 	}
 
 }
