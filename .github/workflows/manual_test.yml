@@ -19,3 +19,4 @@ jobs:
       run: |
         echo "The message is: ${{ github.event.inputs.message }}"
         ls -l
+        uname -a
