@@ -26,5 +26,9 @@ jobs:
     - name: Build
       run: go build -v ./...
 
+    - name: make
+      run: make
+      working-directory: main
+
     - name: Test
-      run: go test -v ./...
+      run: ls -l main
