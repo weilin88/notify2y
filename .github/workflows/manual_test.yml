@@ -14,9 +14,20 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3 
+      
+    - name: make
+      run: make pkg
+      working-directory: main
     
     - name: Print the message
       run: |
         echo "The message is: ${{ github.event.inputs.message }}"
-        ls -l
-        uname -a
+        ls -l main
+        mkdir -p zipfiles
+        mv main/*.zip zipfiles
+        ls -l zipfiles
+    - name: Upload build files as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifact   
+        path: ./zipfiles/         
